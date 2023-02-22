@@ -37,6 +37,9 @@ let request = VNRecognizeTextRequest { request, error in
     }
 }
 
+//looks like accurate is default, but let's set it to be safe
+request.recognitionLevel = .accurate
+
 let handler = VNImageRequestHandler(data: image.tiffRepresentation!, options: [:])
 
 do {

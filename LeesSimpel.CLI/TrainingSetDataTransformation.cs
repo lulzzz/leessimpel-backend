@@ -3,23 +3,23 @@ using Spectre.Console;
 
 static class TrainingSetDataTransformation
 {
-    public static async Task<int> ExecuteAsync(string inputSet, string outputSet,
+    public static async Task ExecuteAsync(string processDescription, string outputExtension, string inputSet, string outputSet,
         Func<NPath, NPath, Task> transformationFunction)
     {
-        var queue = new Queue<NPath>(TrainingSet.Directory.Combine(inputSet).Files());
+        var queue = new Queue<NPath>(Directories.TrainingSet.Combine(inputSet).Files());
 
-        var outputDir = TrainingSet.Directory
+        var outputDir = Directories.TrainingSet
             .Combine(outputSet)
             .DeleteIfExists()
             .EnsureDirectoryExists();
 
-        var throttledExecution = new ThrottledExecution<string>(() =>
+        var throttledExecution = new ThrottledExecution(() =>
         {
             if (!queue.Any())
                 return null;
 
             var inputFile = queue.Dequeue();
-            var resultFile = outputDir.Combine($"{inputFile.FileNameWithoutExtension}.txt");
+            var resultFile = outputDir.Combine($"{inputFile.FileNameWithoutExtension}.txt").ChangeExtension(outputExtension);
             
             var task = transformationFunction(inputFile, resultFile);
 
@@ -43,12 +43,11 @@ static class TrainingSetDataTransformation
             
             return new()
             {
-                Description = inputFile.FileNameWithoutExtension,
+                Description = $"{processDescription} {inputFile.RelativeTo(Directories.TrainingSet)} -> {resultFile.RelativeTo(Directories.TrainingSet)}",
                 Task = task
             };
         });
 
         await throttledExecution.ExecuteAsync();
-        return 0;
     }
 }

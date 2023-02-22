@@ -1,6 +1,6 @@
 using Spectre.Console;
 
-class ThrottledExecution<TResult>
+class ThrottledExecution
 {
     Func<ActiveJob?> StartNextJobFunc { get; }
     int MaxConcurrentTasks { get; }
@@ -64,6 +64,7 @@ class ThrottledExecution<TResult>
                     {
                         activeJobs.Remove(request);
                         var progressTask = progressTasks[request];
+                        
                         progressTask.Description = $"[green]{request.Description}[/]";
                         progressTask.Value = 1;
                         progressTask.StopTask();

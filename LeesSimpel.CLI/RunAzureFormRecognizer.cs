@@ -6,11 +6,11 @@ class RunAppleOCR : AsyncCommand
 {
     public override async Task<int> ExecuteAsync(CommandContext context)
     {
-        await TrainingSetDataTransformation.ExecuteAsync("originals","appleocr", async (inputFile, outputFile) =>
+        await TrainingSetDataTransformation.ExecuteAsync("AppleOCR", "txt","originals","appleocr", async (inputFile, outputFile) =>
         {
             var outputString = new StringBuilder();
             await Cli.Wrap("swift")
-                .WithArguments(TrainingSet.BackendDirectory.Combine($"Tools/VNRecognizeTextRequestTool.swift {inputFile}").ToString())
+                .WithArguments(Directories.Backend.Combine($"Tools/VNRecognizeTextRequestTool.swift {inputFile}").ToString())
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputString))
                 .WithValidation(CommandResultValidation.ZeroExitCode)
                 .ExecuteAsync();
@@ -27,7 +27,7 @@ class RunAzureFormRecognizer : AsyncCommand
     public override async Task<int> ExecuteAsync(CommandContext context)
     {
         var azure = new AzureFormRecognizer();
-        await TrainingSetDataTransformation.ExecuteAsync("originals","azureformrecognizer", async (inputFile, outputFile) =>
+        await TrainingSetDataTransformation.ExecuteAsync("AzureFormRecognizer", "txt","originals","azureformrecognizer", async (inputFile, outputFile) =>
         {
             var ocrString = await azure.ImageToText(new MemoryStream(inputFile.ReadAllBytes()));
             outputFile.WriteAllText(ocrString);
