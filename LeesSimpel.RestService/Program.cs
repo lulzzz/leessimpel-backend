@@ -2,7 +2,6 @@ using Microsoft.ApplicationInsights.DataContracts;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
-builder.Services.AddRazorPages();
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -24,18 +23,25 @@ Secrets.Initialize(builder.Configuration);
 var openAISummarizer = new OpenAISummarizer();
 var azureOCR = new AzureFormRecognizer();
 
-app.MapPost("/summarize", async (HttpContext context, IFormFile file) =>
+async Task<IResult> LogTelemetryAndSummarizeContents(HttpContext httpContext, string contentsOfLetter)
 {
-    var ocrResult = await azureOCR.ImageToText(file.OpenReadStream());
-    
     // Write request body to App Insights
-    var requestTelemetry = context.Features.Get<RequestTelemetry>();                              
-    requestTelemetry?.Properties.Add("OCRResult", ocrResult);
-    
-    
-    
-    var summary = await openAISummarizer.Summarize(ocrResult);
+    var requestTelemetry = httpContext.Features.Get<RequestTelemetry>();
+    requestTelemetry?.Properties.Add("OCRResult", contentsOfLetter);
+
+    var summary = await openAISummarizer.Summarize(contentsOfLetter);
     return Results.Text(summary);
+}
+
+app.MapPost("/summarize_image", async (HttpContext context, IFormFile imageFile) =>
+{
+    var ocrResult = await azureOCR.ImageToText(imageFile.OpenReadStream());
+    return await LogTelemetryAndSummarizeContents(context, ocrResult);
+});
+
+app.MapPost("/summarize_text", async (HttpContext context, string textToSummarize) =>
+{
+    return await LogTelemetryAndSummarizeContents(context, textToSummarize);
 });
 
 app.MapGet("/exception", () =>
@@ -49,8 +55,5 @@ app.MapGet("/notfound", () =>
 });
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthorization();
-app.MapRazorPages();
 app.Run();
