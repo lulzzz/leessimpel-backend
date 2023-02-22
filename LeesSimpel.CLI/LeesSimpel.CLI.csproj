@@ -5,10 +5,12 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace />
     <UserSecretsId>0943d34c-52db-4c85-87e8-a58be3400aa1</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CliWrap" Version="3.6.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.46.1-preview.0.7" />
   </ItemGroup>
 
