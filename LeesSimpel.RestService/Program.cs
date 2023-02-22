@@ -19,7 +19,7 @@ app.UseSwaggerUI();
 //     app.UseHsts();
 //}
 
-Secrets.Intialize(builder.Configuration);
+Secrets.Initialize(builder.Configuration);
 
 var openAISummarizer = new OpenAISummarizer();
 var azureOCR = new AzureFormRecognizer();

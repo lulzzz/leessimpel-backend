@@ -1,13 +1,12 @@
 using System.Collections;
 
-static class Secrets
+public static class Secrets
 {
     static ConfigurationManager? _configurationManager;
 
     public static string Get(string key)
     {
-        var cm = _configurationManager ?? throw new ApplicationException("ConfigurationManager not set");
-        var value = cm[key];
+        var value = _configurationManager?[key];
         if (value != null)
             return value;
 
@@ -24,7 +23,7 @@ static class Secrets
         throw new ApplicationException($"The configuration entry {key} has no value3"); 
     }
 
-    public static void Intialize(ConfigurationManager configurationManager)
+    public static void Initialize(ConfigurationManager configurationManager)
     {
         _configurationManager = configurationManager;
     }

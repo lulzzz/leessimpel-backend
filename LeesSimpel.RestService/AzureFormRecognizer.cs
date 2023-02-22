@@ -4,7 +4,7 @@ using Azure.AI.FormRecognizer.DocumentAnalysis;
 
 public class AzureFormRecognizer
 {
-    private readonly DocumentAnalysisClient _client;
+    readonly DocumentAnalysisClient _client;
 
     public AzureFormRecognizer()
     {
@@ -30,8 +30,8 @@ public class AzureFormRecognizer
         var sb = new StringBuilder();
         foreach (var paragraph in analysis.Paragraphs)
         {
-            sb.AppendLine($"===PARAGRAPH:");
             sb.AppendLine(paragraph.Content);
+            sb.AppendLine();
         }
 
         return sb.ToString();
