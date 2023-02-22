@@ -7,8 +7,8 @@ class ThrottledExecution
 
     public record ActiveJob
     {
-        public string Description;
-        public Task Task;
+        public string Description { get; init; } = null!;
+        public Task Task { get; init; } = null!;
     }
     
     public ThrottledExecution(

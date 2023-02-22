@@ -32,12 +32,12 @@ static class TrainingSetDataTransformation
                 if (azureJobException != null)
                 {
                     AnsiConsole.WriteException(azureJobException);
-                    resultFile.WriteAllText("Job failed with exception: " + azureJobException);
+                    resultFile.WriteAllText($"{processDescription} failed with exception: " + azureJobException);
                 }
                 else
                 {
-                    AnsiConsole.MarkupLine("[red]azurejob had no exception[/]");
-                    resultFile.WriteAllText("azurejob had no exception");
+                    AnsiConsole.MarkupLine($"[red]{processDescription} had no exception[/]");
+                    resultFile.WriteAllText($"{processDescription} had no exception");
                 }
             });
             
