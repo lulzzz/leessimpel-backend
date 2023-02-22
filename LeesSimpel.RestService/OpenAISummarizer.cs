@@ -30,7 +30,8 @@ return JSON format with keys for:
 
 Make sure you return a valid JSON syntax.",
             Model = Models.TextDavinciV3,
-            MaxTokens = 2000
+            MaxTokens = 2000,
+            Temperature = 0
         });
 
         if (!completionResult.Successful)

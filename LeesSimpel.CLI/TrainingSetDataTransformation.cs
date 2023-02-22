@@ -3,7 +3,7 @@ using Spectre.Console;
 
 static class TrainingSetDataTransformation
 {
-    public static async Task ExecuteAsync(string processDescription, string outputExtension, string inputSet, string outputSet,
+    public static async Task<int> ExecuteAsync(string processDescription, string outputExtension, string inputSet, string outputSet,
         Func<NPath, NPath, Task> transformationFunction)
     {
         var queue = new Queue<NPath>(Directories.TrainingSet.Combine(inputSet).Files());
@@ -13,6 +13,8 @@ static class TrainingSetDataTransformation
             .DeleteIfExists()
             .EnsureDirectoryExists();
 
+        bool anyTaskFailed = false;
+        
         var throttledExecution = new ThrottledExecution(() =>
         {
             if (!queue.Any())
@@ -28,6 +30,7 @@ static class TrainingSetDataTransformation
                 if (task.IsCompletedSuccessfully)
                     return;
 
+                anyTaskFailed = true;
                 var azureJobException = task.Exception;
                 if (azureJobException != null)
                 {
@@ -49,5 +52,6 @@ static class TrainingSetDataTransformation
         });
 
         await throttledExecution.ExecuteAsync();
+        return anyTaskFailed ? 1 : 0;
     }
 }

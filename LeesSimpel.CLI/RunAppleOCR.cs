@@ -3,6 +3,31 @@ using CliWrap;
 using Spectre.Console.Cli;
 
 // ReSharper disable once ClassNeverInstantiated.Global
+class Summarize : AsyncCommand<Summarize.Settings>
+{
+    internal class Settings : CommandSettings
+    {
+        [CommandArgument(0, "<inputset>")]
+        public string InputSet { get; set; } = null!;
+    }
+
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    {
+        var openai = new OpenAISummarizer();
+
+        return await TrainingSetDataTransformation.ExecuteAsync("Summarize", "json", settings.InputSet,
+            settings.InputSet + "_summarized",
+            async (inputFile, outputFile) =>
+            {
+                var summary = await openai.Summarize(inputFile.ReadAllText());
+                outputFile.WriteAllText(summary);
+            });
+    }
+}
+
+
+
+// ReSharper disable once ClassNeverInstantiated.Global
 class RunAppleOCR : AsyncCommand
 {
     public override async Task<int> ExecuteAsync(CommandContext context)

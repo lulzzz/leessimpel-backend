@@ -2,11 +2,11 @@ using System.Collections;
 
 public static class Secrets
 {
-    static ConfigurationManager? _configurationManager;
+    static IConfigurationRoot? _configurationRoot;
 
     public static string Get(string key)
     {
-        var value = _configurationManager?[key];
+        var value = _configurationRoot?[key];
         if (value != null)
             return value;
 
@@ -23,8 +23,8 @@ public static class Secrets
         throw new ApplicationException($"The configuration entry {key} has no value3"); 
     }
 
-    public static void Initialize(ConfigurationManager configurationManager)
+    public static void Initialize(IConfigurationRoot configurationManager)
     {
-        _configurationManager = configurationManager;
+        _configurationRoot = configurationManager;
     }
 }

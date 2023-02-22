@@ -13,7 +13,7 @@ class ThrottledExecution
     
     public ThrottledExecution(
         Func<ActiveJob?> startNextJobFunc,
-        int maxConcurrentTasks = 2)
+        int maxConcurrentTasks = 10)
     {
         StartNextJobFunc = startNextJobFunc;
         MaxConcurrentTasks = maxConcurrentTasks;
