@@ -1,7 +1,7 @@
 using Microsoft.ApplicationInsights.DataContracts;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Configuration.AddEnvironmentVariables();
 builder.Services.AddRazorPages();
 builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddEndpointsApiExplorer();
@@ -54,4 +54,3 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapRazorPages();
 app.Run();
-    

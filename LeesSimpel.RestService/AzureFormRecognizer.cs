@@ -9,8 +9,8 @@ public class AzureFormRecognizer
     public AzureFormRecognizer()
     {
         _client = new(
-            new(Secrets.Get("AzureFormRecognizer__Endpoint")),
-            new AzureKeyCredential(Secrets.Get("AzureFormRecognizer__Key"))
+            new(Secrets.Get("AzureFormRecognizer:Endpoint")),
+            new AzureKeyCredential(Secrets.Get("AzureFormRecognizer:Key"))
             );
     }
     

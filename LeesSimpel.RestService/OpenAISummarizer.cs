@@ -6,7 +6,7 @@ public class OpenAISummarizer
 {
     readonly IOpenAIService _service = new OpenAIService(new()
     {
-        ApiKey = Secrets.Get("OpenAIServiceOptions__ApiKey")
+        ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
     });
 
     public async Task<string> Summarize(string ocrResult)
