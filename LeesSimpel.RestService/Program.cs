@@ -39,9 +39,9 @@ app.MapPost("/summarize_image", async (HttpContext context, IFormFile imageFile)
     return await LogTelemetryAndSummarizeContents(context, ocrResult);
 });
 
-app.MapPost("/summarize_text", async (HttpContext context, string textToSummarize) =>
+app.MapPost("/summarize_text", async (HttpContext context, SummarizeTextParameters summarizeTextParameters) =>
 {
-    return await LogTelemetryAndSummarizeContents(context, textToSummarize);
+    return await LogTelemetryAndSummarizeContents(context, summarizeTextParameters.TextToSummarize);
 });
 
 app.MapGet("/exception", () =>
@@ -57,3 +57,4 @@ app.MapGet("/notfound", () =>
 app.UseHttpsRedirection();
 app.UseRouting();
 app.Run();
+record SummarizeTextParameters(string TextToSummarize);
