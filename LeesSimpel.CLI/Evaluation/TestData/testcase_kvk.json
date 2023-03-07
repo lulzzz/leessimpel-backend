@@ -25,10 +25,10 @@
     { "contains_fact": "de rekening is 22 euro"},
     { "contains_fact": "de betaling moet naar rekening NL31DEUT0319810577"},
     { "contains_fact": "de betaling moet faktuurnummer 12346789 vermelden"},
-    { "contains_fact": "de betaling moet voor 26-7-2019 betaald zijn"},
+    { "contains_fact": "er is een betalingstermijn"},
     { "contains_fact": "U heeft al eerder een herrinering ontvangen"},
     { "contains_fact": "Als U niet op tijd betaalt komen er extra kosten"}
   ],
   
-  "expected_results": [true, true, false, false, false, false, false]
+  "expected_results": [true, true, false, false, true, false, false]
 }

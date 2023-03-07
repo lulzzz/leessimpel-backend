@@ -1,35 +1,47 @@
-using Spectre.Console;
+using System.Text;
 using Newtonsoft.Json.Linq;
 using OpenAI.GPT3.Managers;
 using OpenAI.GPT3.ObjectModels;
 
 public static class AccuracyEvaluatorGTP3
 {
-    static readonly OpenAIService _service = new OpenAIService(new()
+    static readonly OpenAIService _service = new(new()
     {
         ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
     });
-    
-    public static async Task<bool[]> Evaluate(Summary summary, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
+
+    public class EvaluationResult
     {
+        public bool[] present_messges;
+        public string debug_gpt3_info;
+    }
+    
+    public static async Task<EvaluationResult> Evaluate(Summary summary, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
+    {
+        string MakeNumberedBulletList(Summary s)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i != s.summary_sentences.Length; i++)
+                sb.AppendLine($"{i+1}: {s.summary_sentences[i].text}");
+            return sb.ToString();
+        }
+        
         var s = @$"
 What follows is a bullet point summary of a letter:
 
-{summary.summary_sentences.Select(s=>$"- {s.text}\n").SeparateWith("\n")}
+{MakeNumberedBulletList(summary)}
 
-
-I will now present a set of messages/facts.
-I want you to tell me for each message if they are present in the summary. 
-restrict your response to a json array of booleans where each value indicates whether the corresponding message is communicated in the summary
-
+In order to know if the summary is of high quality, I want to know which of the following key messages of the original text appear summary:
 {accuracyEvaluationCriteria.Things.OfType<AccuracyEvaluationCriteria.ContainsFact>().Select(f=>$"- {f.fact}").SeparateWith("\n")}
+
+Restrict your response to a json object where each key is the message, and the value is the number of the bulletpoint that communicates that message. use 0 if the message is not present in the summary.
 ";
 
         var completionResult = await _service.Completions.CreateCompletion(new()
         {
             Prompt = s,
             Model = Models.TextDavinciV3,
-            MaxTokens = 100,
+            MaxTokens = 3000,
             Temperature = 0
         });
 
@@ -38,14 +50,27 @@ restrict your response to a json array of booleans where each value indicates wh
 
         var response = completionResult.Choices.FirstOrDefault()!.Text;
 
+        var debugInfo = new StringBuilder();
         
-        AnsiConsole.MarkupLine("[yellow]Prompt:[/]");
-        Console.WriteLine(s);
-        Console.WriteLine();
-        AnsiConsole.MarkupLine("[yellow]Response:[/]");
-        Console.WriteLine(response);
-        
-        return JArray.Parse(response).ToObject<bool[]>();
+        debugInfo.AppendLine("[yellow]Prompt:[/]");
+        debugInfo.AppendLine(s);
+        debugInfo.AppendLine();
+        debugInfo.AppendLine("[yellow]Response:[/]");
+        debugInfo.AppendLine(response);
+
+        var jo = JObject.Parse(response);
+        var bools = new List<bool>();
+        foreach (var kvp in jo)
+        {
+            int index = kvp.Value.Value<int>();
+            bools.Add(index != 0);
+        }
+
+        return new EvaluationResult()
+        {
+            present_messges = bools.ToArray(),
+            debug_gpt3_info = debugInfo.ToString()
+        };
     }
 }
 

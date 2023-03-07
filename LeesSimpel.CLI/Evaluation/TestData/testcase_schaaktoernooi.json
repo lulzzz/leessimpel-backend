@@ -1,0 +1,44 @@
+{
+  "summary_to_evaluate":
+  {
+    "sender": "Vladimir Kops",
+    "call_to_action": "Neem contact op met ondergetekende als u verdere vragen heeft.",
+    "call_to_action_is_call": false,
+    "phone_number": "0618013433",
+    "summary_sentences": [
+      {
+        "emoji": "📆",
+        "text": "Op zondag 12 februari organiseert VAS een schaaktoernooi voor schoolteams uit Amsterdam-Centrum, Oost en Zuidoost."
+      },
+      {
+        "emoji": "⏰",
+        "text": "De schoolteams moeten om 13:15 uur aanwezig zijn."
+      },
+      {
+        "emoji": "💰",
+        "text": "Het kost €16,- per team."
+      },
+      {
+        "emoji": "📝",
+        "text": "Inschrijven kan tot en met vrijdag 10 februari per e-mail."
+      },
+      {
+        "emoji": "🏆",
+        "text": "De hoogst eindigende teams plaatsen zich voor de Halve Finale van het Groot-Amsterdamse Basisscholenschaakkampioenschap."
+      }
+    ]
+  },
+
+  "evaluation_criteria": [
+    { "contains_fact": "Er een schaaktoernooi", "weight": 10},
+    { "contains_fact": "Het is op zondag 12 februari"},
+    { "contains_fact": "Het begint om 13:15 uur"},
+    { "contains_fact": "Het is op het Cygnus Gymnasium"},
+    { "contains_fact": "Het kost 16 per team.", "weight": 0.5},
+    { "contains_fact": "Inschrijven kan tot en met vrijdag 10 februari"},
+    { "contains_fact": "Inschrijven kan via email naar vladimirkops@gmail.com", "weight": 5},
+    { "contains_fact": "De beste teams plaatsen zich voor de halve finale"}
+  ],
+
+  "expected_results": [true, true, true, false, true, true, false, true]
+} 
