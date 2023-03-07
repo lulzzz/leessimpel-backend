@@ -1,5 +1,6 @@
 ﻿using Spectre.Console.Cli;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 var builder = new ConfigurationBuilder().AddUserSecrets<Program>();
 var configuration = builder.Build();
@@ -9,9 +10,11 @@ var app = new CommandApp();
 
 app.Configure(config =>
 {
-    config.AddCommand<RunAzureFormRecognizer>("azureformrecognizer");
-    config.AddCommand<RunAppleOCR>("appleocr");
-    config.AddCommand<Summarize>("summarize");
+    config.AddCommand<RunAzureFormRecognizerCommand>("azureformrecognizer");
+    config.AddCommand<RunAppleOCRCommand>("appleocr");
+    config.AddCommand<SummarizeCommand>("summarize");
+    config.AddCommand<TestAccuracyEvaluatorCommand>("testevaluator");
+    config.AddCommand<TempTest>("temptest");
 });
 
 return app.Run(args);

@@ -1,4 +1,5 @@
-﻿using OpenAI.GPT3.Interfaces;
+﻿using Newtonsoft.Json;
+using OpenAI.GPT3.Interfaces;
 using OpenAI.GPT3.Managers;
 using OpenAI.GPT3.ObjectModels;
 
@@ -9,7 +10,7 @@ public class OpenAISummarizer
         ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
     });
 
-    public async Task<string> Summarize(string ocrResult)
+    public async Task<Summary?> Summarize(string ocrResult)
     {
         var completionResult = await _service.Completions.CreateCompletion(new()
         {
@@ -36,8 +37,9 @@ Make sure you return a valid JSON syntax.",
 
         if (!completionResult.Successful)
             throw new SummarizeException("GTP3 summarize prompt was unsuccessful. "+completionResult.Error?.Message);
-        
-        return completionResult.Choices.FirstOrDefault()!.Text;
+
+        var response = completionResult.Choices.FirstOrDefault()!.Text;
+        return JsonConvert.DeserializeObject<Summary>(response);
     }
 }
 

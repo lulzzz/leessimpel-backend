@@ -1,4 +1,5 @@
 using Microsoft.ApplicationInsights.DataContracts;
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -28,9 +29,8 @@ async Task<IResult> LogTelemetryAndSummarizeContents(HttpContext httpContext, st
     // Write request body to App Insights
     var requestTelemetry = httpContext.Features.Get<RequestTelemetry>();
     requestTelemetry?.Properties.Add("OCRResult", contentsOfLetter);
-
     var summary = await openAISummarizer.Summarize(contentsOfLetter);
-    return Results.Text(summary);
+    return Results.Text(JsonConvert.SerializeObject(summary));
 }
 
 app.MapPost("/summarize_image", async (HttpContext context, IFormFile imageFile) =>

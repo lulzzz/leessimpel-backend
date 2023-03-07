@@ -1,6 +1,7 @@
 using Spectre.Console.Cli;
 
-class RunAzureFormRecognizer : AsyncCommand
+// ReSharper disable once ClassNeverInstantiated.Global
+class RunAzureFormRecognizerCommand : AsyncCommand
 {
     public override async Task<int> ExecuteAsync(CommandContext context)
     {

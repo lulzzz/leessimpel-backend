@@ -1,0 +1,45 @@
+{
+  "summary_to_evaluate": {
+    "sender": "Stichting Pensioenfonds ABP",
+    "call_to_action": "Lees de toelichting en maak belangrijke keuzes.",
+    "call_to_action_is_call": false,
+    "phone_number": "",
+    "summary_sentences": [
+      {
+        "emoji": "📝",
+        "text": "Je hebt een pensioenoverzicht ontvangen omdat je minimaal 3 maanden niet meer bij ABP hebt gewerkt."
+      },
+      {
+        "emoji": "⚠️",
+        "text": "Let op! Je moet belangrijke keuzes maken."
+      },
+      {
+        "emoji": "📝",
+        "text": "Je kunt je opgebouwde pension meenemen naar een andere pensioenuitvoerder of bij ABP laten."
+      },
+      {
+        "emoji": "📝",
+        "text": "Je kunt ook een deel van je ABP KeuzePension toevoegen aan het nabestaandenpensioen."
+      },
+      {
+        "emoji": "📝",
+        "text": "Je kunt je pensioenopbouw bij ABP maximaal 3 jaar vrijwillig voortzetten."
+      }
+    ]
+  },
+
+  "evaluation_criteria": [
+    { "contains_fact": "Dit is een pensioenoverzicht", "weight": 10},
+    { "contains_fact": "U werkt al drie maanden niet meer bij een ABP aangesloten werkgever"},
+    { "contains_fact": "U kunt uw opgebouwde pensioen bij ABP laten, of meenemen naar een nieuwe pensioenuitvoerder"},
+    { "contains_fact": "het nabestaandenpensioen voor uw partner wordt een stuk lager of verdwijnt"},
+    { "contains_fact": "U kunt kiezen een deel van uw ABP keuzepensioen toe te voegen aan het nabestaandenpensioen"},
+    { "contains_fact": "als u een deel van uw ABP keuzepensioen toe wil voegen aan het nabestaandenpensioen kunt U dat aanvragen tot 7 april 2018"},
+    { "contains_fact": "U kunt vrijwillig uw pensioenopbouw bij ABP voortzetten"},
+    { "contains_fact": "Een voorwaarde van het vrijwillig voortzetten van de pensioenopbouw bij ABP is dat U geen pensioen ergens anders opbouwt"},
+    { "contains_fact": "bewaar dit pensioenoverzicht"},
+    { "contains_fact": "lees ook de toelichting"}
+  ],
+
+  "expected_results": [true, true, true, false, true, false, true, false, false, false]
+} 
