@@ -14,6 +14,7 @@ app.Configure(config =>
     config.AddCommand<RunAppleOCRCommand>("appleocr");
     config.AddCommand<SummarizeCommand>("summarize");
     config.AddCommand<TestAccuracyEvaluatorCommand>("testevaluator");
+    config.AddCommand<EvaluateCommand>("evaluate");
     config.AddCommand<TempTest>("temptest");
 });
 

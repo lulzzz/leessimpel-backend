@@ -6,7 +6,7 @@ static class TrainingSetDataTransformation
     public static async Task<int> ExecuteAsync(string processDescription, string outputExtension, string inputSet, string outputSet,
         Func<NPath, NPath, Task> transformationFunction)
     {
-        var queue = new Queue<NPath>(Directories.TrainingSet.Combine(inputSet).Files());
+        var queue = new Queue<NPath>(Directories.TrainingSet.Combine(inputSet).Files().Where(f=>!f.FileName.StartsWith('.')));
 
         var outputDir = Directories.TrainingSet
             .Combine(outputSet)

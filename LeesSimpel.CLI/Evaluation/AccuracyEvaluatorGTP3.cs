@@ -10,12 +10,6 @@ public static class AccuracyEvaluatorGTP3
         ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
     });
 
-    public class EvaluationResult
-    {
-        public bool[] present_messges;
-        public string debug_gpt3_info;
-    }
-    
     public static async Task<EvaluationResult> Evaluate(Summary summary, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
     {
         string MakeNumberedBulletList(Summary s)
@@ -32,7 +26,7 @@ What follows is a bullet point summary of a letter:
 {MakeNumberedBulletList(summary)}
 
 In order to know if the summary is of high quality, I want to know which of the following key messages of the original text appear summary:
-{accuracyEvaluationCriteria.Things.OfType<AccuracyEvaluationCriteria.ContainsFact>().Select(f=>$"- {f.fact}").SeparateWith("\n")}
+{accuracyEvaluationCriteria.Criteria.OfType<AccuracyEvaluationCriteria.ContainsKeyMessage>().Select(f=>$"- {f.keyMessage}").SeparateWith("\n")}
 
 Restrict your response to a json object where each key is the message, and the value is the number of the bulletpoint that communicates that message. use 0 if the message is not present in the summary.
 ";
@@ -59,19 +53,32 @@ Restrict your response to a json object where each key is the message, and the v
         debugInfo.AppendLine(response);
 
         var jo = JObject.Parse(response);
-        var bools = new List<bool>();
+        var keyMessageResults = new List<KeyMessageResult>();
         foreach (var kvp in jo)
         {
             int index = kvp.Value.Value<int>();
-            bools.Add(index != 0);
+            keyMessageResults.Add(new() { Message = kvp.Key, FoundAt = index, Weight = 1 /*todo: fix weight*/});
         }
 
         return new EvaluationResult()
         {
-            present_messges = bools.ToArray(),
+            keyMessageResults = keyMessageResults.ToArray(),
             debug_gpt3_info = debugInfo.ToString()
         };
     }
+}
+
+public class EvaluationResult
+{
+    public KeyMessageResult[] keyMessageResults;
+    public string debug_gpt3_info;
+}
+
+public struct KeyMessageResult
+{
+    public string Message;
+    public float Weight;
+    public int FoundAt;
 }
 
 static class EnumerableExtensions

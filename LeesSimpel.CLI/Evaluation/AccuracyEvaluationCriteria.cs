@@ -3,18 +3,18 @@ using Newtonsoft.Json.Linq;
 
 public class AccuracyEvaluationCriteria
 {
-    public Criterion[] Things;
+    public Criterion[] Criteria;
     
     public class Criterion
     {
         public float weight;
     }
     
-    public class ContainsFact : Criterion
+    public class ContainsKeyMessage : Criterion
     {
-        public string fact;
+        public string keyMessage;
 
-        public override string ToString() => fact;
+        public override string ToString() => keyMessage;
     }
 
     public class HasSender : Criterion
@@ -46,7 +46,7 @@ public class AccuracyEvaluationCriteria
                     var value = jp.Value.Value<string>();
                     var jToken = jo["weight"];
                     var weight = jToken?.Value<float>();
-                    criteria.Add(new ContainsFact {fact = value, weight = weight ?? 1f});
+                    criteria.Add(new ContainsKeyMessage {keyMessage = value, weight = weight ?? 1f});
                     break;
                 case "has_sender":
                     criteria.Add(new HasSender() {sender = jp.Value.Value<string>(), weight = jo["weight"]?.Value<float>() ?? 1f});
@@ -56,6 +56,6 @@ public class AccuracyEvaluationCriteria
             }
         }
 
-        return new() {Things = criteria.ToArray()};
+        return new() {Criteria = criteria.ToArray()};
     }
 }

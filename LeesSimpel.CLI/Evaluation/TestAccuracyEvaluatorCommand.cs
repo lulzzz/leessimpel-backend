@@ -44,7 +44,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
                     var result = completedTask.Result;
 
                     var msg = result.Pass
-                        ? $"[green] {valueTuple.testFile.FileName} [/] Correctly marked {result.PresentMessages.Count(m => m)} messages as present and {result.PresentMessages.Count(m => !m)} as missing"
+                        ? $"[green] {valueTuple.testFile.FileName} [/] Correctly marked {result.KeyMessageResults.Count(m => m.FoundAt != 0)} messages as present and {result.KeyMessageResults.Count(m => m.FoundAt == 0)} as missing"
                         : $"[red] {valueTuple.testFile.FileName} FAIL [/] Details below";
 
                     progressTask.Value = 1;
@@ -72,7 +72,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         public bool Pass;
         public string[] FailureReasons;
         public string DebugGtpOutput;
-        public bool[] PresentMessages;
+        public KeyMessageResult[] KeyMessageResults;
     }
     static async Task<TestResult> RunSingleTest(NPath testFile)
     {
@@ -88,18 +88,18 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         var evaluationResult = await AccuracyEvaluatorGTP3.Evaluate(summary, evaluationCriteria);
         bool[] expectedResult = testCaseObject["expected_results"].ToObject<bool[]>();
 
-        var pass = Compare(evaluationResult.present_messges, expectedResult, evaluationCriteria, out var reasons);
+        var pass = Compare(evaluationResult.keyMessageResults, expectedResult, evaluationCriteria, out var reasons);
 
         return new TestResult()
         {
             Pass = pass,
             DebugGtpOutput = evaluationResult.debug_gpt3_info, 
             FailureReasons = reasons,
-            PresentMessages = evaluationResult.present_messges
+            KeyMessageResults = evaluationResult.keyMessageResults
         };
     }
 
-    static bool Compare(bool[] actual, bool[] expected, AccuracyEvaluationCriteria criteria, out string[] reasons)
+    static bool Compare(KeyMessageResult[] actual, bool[] expected, AccuracyEvaluationCriteria criteria, out string[] reasons)
     {
         if (actual.Length != expected.Length)
         {
@@ -110,10 +110,11 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         var reasonList = new List<string>();
         for (int i = 0; i != actual.Length; i++)
         {
-            if (actual[i] == expected[i])
+            bool found = actual[i].FoundAt != 0;
+            if (expected[i] == found)
                 continue;
 
-            reasonList.Add($"Expected result is {expected[i]} for '{criteria.Things[i]}', but evaluator returned {actual[i]}");
+            reasonList.Add($"Expected result is {expected[i]} for '{criteria.Criteria[i]}', but evaluator returned {actual[i]}");
         }
 
         reasons = reasonList.ToArray();

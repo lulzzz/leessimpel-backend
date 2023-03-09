@@ -12,7 +12,7 @@ class RunAppleOCRCommand : AsyncCommand
         {
             var outputString = new StringBuilder();
             await Cli.Wrap("swift")
-                .WithArguments(Directories.Backend.Combine($"Tools/VNRecognizeTextRequestTool.swift {inputFile}").ToString())
+                .WithArguments(Directories.Backend.Combine($"Tools/VNRecognizeTextRequestTool.swift {inputFile.InQuotes()}").ToString())
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputString))
                 .WithValidation(CommandResultValidation.ZeroExitCode)
                 .ExecuteAsync();
