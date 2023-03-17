@@ -1,15 +1,17 @@
 using System.Text;
 using Newtonsoft.Json.Linq;
-using OpenAI.GPT3.Managers;
-using OpenAI.GPT3.ObjectModels;
+using OpenAI.GPT3.ObjectModels.RequestModels;
 
-public static class AccuracyEvaluatorGTP3
+public static class AccuracyEvaluator
 {
-    static readonly OpenAIService _service = new(new()
-    {
-        ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
-    });
-
+    const string SystemMessageText = @"
+Your job is to evaluate a summary of a letter. 
+The first user message is the bulletpoint summary. 
+The second user message is a list of key messages that a good summary should contain.
+respond with a json object where the key is a key message, and the value is the number of the bulletpoint where you found that key message being communicated in the summary.
+If you dont find the key message anywhere, use 0.
+";
+    
     public static async Task<EvaluationResult> Evaluate(Summary summary, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
     {
         string MakeNumberedBulletList(Summary s)
@@ -19,35 +21,33 @@ public static class AccuracyEvaluatorGTP3
                 sb.AppendLine($"{i+1}: {s.summary_sentences[i].text}");
             return sb.ToString();
         }
-        
-        var s = @$"
-What follows is a bullet point summary of a letter:
 
-{MakeNumberedBulletList(summary)}
-
-In order to know if the summary is of high quality, I want to know which of the following key messages of the original text appear summary:
-{accuracyEvaluationCriteria.Criteria.OfType<AccuracyEvaluationCriteria.ContainsKeyMessage>().Select(f=>$"- {f.keyMessage}").SeparateWith("\n")}
-
-Restrict your response to a json object where each key is the message, and the value is the number of the bulletpoint that communicates that message. use 0 if the message is not present in the summary.
-";
-
-        var completionResult = await _service.Completions.CreateCompletion(new()
+        var chatCompletionCreateRequest = new ChatCompletionCreateRequest()
         {
-            Prompt = s,
-            Model = Models.TextDavinciV3,
+            Model = "gpt-4",
             MaxTokens = 3000,
-            Temperature = 0
-        });
+            Temperature = 0,
+            Messages = new List<ChatMessage>()
+            {
+                ChatMessage.FromSystem(SystemMessageText),
+                ChatMessage.FromUser(MakeNumberedBulletList(summary)),
+                ChatMessage.FromUser(accuracyEvaluationCriteria.Criteria.OfType<AccuracyEvaluationCriteria.ContainsKeyMessage>().Select(f=>$"- {f.keyMessage}").SeparateWith("\n"))
+            }
+        };
+        var completionResult = await OpenAITools.Service.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
 
         if (!completionResult.Successful)
             throw new Exception("GTP3 prompt was unsuccessful. "+completionResult);
 
-        var response = completionResult.Choices.FirstOrDefault()!.Text;
+        var response = completionResult.Choices.First().Message.Content;
 
         var debugInfo = new StringBuilder();
         
         debugInfo.AppendLine("[yellow]Prompt:[/]");
-        debugInfo.AppendLine(s);
+        foreach (var message in chatCompletionCreateRequest.Messages)
+        {
+            debugInfo.AppendLine($"{message.Role}: {message.Content}");
+        }
         debugInfo.AppendLine();
         debugInfo.AppendLine("[yellow]Response:[/]");
         debugInfo.AppendLine(response);

@@ -1,6 +1,6 @@
+using DefaultNamespace;
 using Newtonsoft.Json;
 using Spectre.Console.Cli;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
@@ -17,16 +17,21 @@ class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
     {
-        var openai = new OpenAISummarizer();
-
         return await TrainingSetDataTransformation.ExecuteAsync("Summarize", "json", settings.InputSet,
             settings.InputSet + "_summarized"+(settings.Technique  == null ? "" : $"-{settings.Technique}"),
             async (inputFile, outputFile) =>
             {
-                var summary = await openai.Summarize(inputFile.ReadAllText());
+                var readAllText = inputFile.ReadAllText();
+                var summary = await SummarizeWithTechnique(readAllText, settings.Technique);
                 outputFile.WriteAllText(JsonConvert.SerializeObject(summary, Formatting.Indented));
             });
     }
-}
 
-// ReSharper disable once ClassNeverInstantiated.Global
+    static Task<Summary> SummarizeWithTechnique(string readAllText, string? settingsTechnique) =>
+        (settingsTechnique ?? "gpt3") switch
+        {
+            "gpt4" => ChatBasedSummarizer.Summarize(readAllText),
+            "gpt3" => ClassicHackathonSummarizer.Summarize(readAllText),
+            _ => throw new ArgumentException($"Unknown technique: {settingsTechnique}")
+        };
+}

@@ -22,7 +22,6 @@ app.UseSwaggerUI();
 
 Secrets.Initialize(builder.Configuration);
 
-var openAISummarizer = new OpenAISummarizer();
 var azureOCR = new AzureFormRecognizer();
 
 async Task<IResult> LogTelemetryAndSummarizeContents(HttpContext httpContext, string contentsOfLetter)
@@ -30,7 +29,7 @@ async Task<IResult> LogTelemetryAndSummarizeContents(HttpContext httpContext, st
     // Write request body to App Insights
     var requestTelemetry = httpContext.Features.Get<RequestTelemetry>();
     requestTelemetry?.Properties.Add("OCRResult", contentsOfLetter);
-    var summary = await openAISummarizer.Summarize(contentsOfLetter);
+    var summary = await ClassicHackathonSummarizer.Summarize(contentsOfLetter);
     return Results.Text(JsonConvert.SerializeObject(summary));
 }
 
@@ -47,7 +46,7 @@ app.MapPost("/summarize_text", async (HttpContext context, SummarizeTextParamete
 
 app.MapPost($"/v2/summarize_text", async (SummarizeTextParameters summarizeTextParameters) =>
 {
-    var summary = await openAISummarizer.Summarize(summarizeTextParameters.TextToSummarize);
+    var summary = await ClassicHackathonSummarizer.Summarize(summarizeTextParameters.TextToSummarize);
 
     return Results.Text(JsonConvert.SerializeObject(new JArray
     {

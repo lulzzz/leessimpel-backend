@@ -85,7 +85,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         var evaluationCriteriaArray = testCaseObject[propertyName] as JArray ??
                                       throw new ArgumentException($"{propertyName} was not a JArray");
         var evaluationCriteria = AccuracyEvaluationCriteria.Parse(evaluationCriteriaArray);
-        var evaluationResult = await AccuracyEvaluatorGTP3.Evaluate(summary, evaluationCriteria);
+        var evaluationResult = await AccuracyEvaluator.Evaluate(summary, evaluationCriteria);
         bool[] expectedResult = testCaseObject["expected_results"]!.ToObject<bool[]>()!;
 
         var pass = Compare(evaluationResult.KeyMessageResults, expectedResult, evaluationCriteria, out var reasons);

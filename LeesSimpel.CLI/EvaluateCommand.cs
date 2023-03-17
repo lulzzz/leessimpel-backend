@@ -26,7 +26,7 @@ class EvaluateCommand : AsyncCommand<EvaluateCommand.Settings>
                     return;
                 }
                 var evaluationCriteria = AccuracyEvaluationCriteria.Parse(criteriafile.ReadAllText());
-                var evaluationResult = await AccuracyEvaluatorGTP3.Evaluate(summary, evaluationCriteria);
+                var evaluationResult = await AccuracyEvaluator.Evaluate(summary, evaluationCriteria);
                 int characterCount = summary.summary_sentences.Sum(s => s.text.Length);
 
 

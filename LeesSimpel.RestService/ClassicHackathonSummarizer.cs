@@ -1,18 +1,11 @@
 ﻿using Newtonsoft.Json;
-using OpenAI.GPT3.Interfaces;
-using OpenAI.GPT3.Managers;
 using OpenAI.GPT3.ObjectModels;
 
-public class OpenAISummarizer
+public static class ClassicHackathonSummarizer
 {
-    readonly IOpenAIService _service = new OpenAIService(new()
+    public static async Task<Summary> Summarize(string ocrResult)
     {
-        ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
-    });
-
-    public async Task<Summary> Summarize(string ocrResult)
-    {
-        var completionResult = await _service.Completions.CreateCompletion(new()
+        var completionResult = await OpenAITools.Service.Completions.CreateCompletion(new()
         {
             Prompt = ocrResult + @"=================================
 Summarize this essence of this letter into different sentences.
@@ -49,12 +42,5 @@ Make sure you return a valid JSON syntax.",
             throw MakeSummarizeException();
 
         return JsonConvert.DeserializeObject<Summary>(response.Substring(startIndex, endIndex - startIndex + 1)) ?? throw MakeSummarizeException();
-    }
-}
-
-class SummarizeException : Exception
-{ 
-    public SummarizeException(string message) : base(message)
-    {
     }
 }
