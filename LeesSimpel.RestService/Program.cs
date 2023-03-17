@@ -57,4 +57,3 @@ app.MapGet("/notfound", () =>
 app.UseHttpsRedirection();
 app.UseRouting();
 app.Run();
-record SummarizeTextParameters(string TextToSummarize);

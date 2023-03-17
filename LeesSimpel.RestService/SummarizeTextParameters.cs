@@ -1,0 +1,1 @@
+record SummarizeTextParameters(string TextToSummarize);
