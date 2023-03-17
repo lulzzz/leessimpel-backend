@@ -10,7 +10,7 @@ public class OpenAISummarizer
         ApiKey = Secrets.Get("OpenAIServiceOptions:ApiKey")
     });
 
-    public async Task<Summary?> Summarize(string ocrResult)
+    public async Task<Summary> Summarize(string ocrResult)
     {
         var completionResult = await _service.Completions.CreateCompletion(new()
         {
@@ -39,7 +39,16 @@ Make sure you return a valid JSON syntax.",
             throw new SummarizeException("GTP3 summarize prompt was unsuccessful. "+completionResult.Error?.Message);
 
         var response = completionResult.Choices.FirstOrDefault()!.Text;
-        return JsonConvert.DeserializeObject<Summary>(response);
+        
+        int startIndex = response.IndexOf('{');
+        int endIndex = response.LastIndexOf('}');
+
+        Exception MakeSummarizeException() => new SummarizeException($"GTP response wasn't valid json: {response}");
+
+        if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex) 
+            throw MakeSummarizeException();
+
+        return JsonConvert.DeserializeObject<Summary>(response.Substring(startIndex, endIndex - startIndex + 1)) ?? throw MakeSummarizeException();
     }
 }
 

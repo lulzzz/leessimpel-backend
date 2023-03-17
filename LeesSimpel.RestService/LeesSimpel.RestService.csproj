@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace></RootNamespace>
     <UserSecretsId>0db459bf-07a2-4ddc-948a-47009848268b</UserSecretsId>
+    <WarningsAsErrors>true</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
