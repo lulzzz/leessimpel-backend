@@ -1,5 +1,6 @@
 using Microsoft.ApplicationInsights.DataContracts;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -42,6 +43,20 @@ app.MapPost("/summarize_image", async (HttpContext context, IFormFile imageFile)
 app.MapPost("/summarize_text", async (HttpContext context, SummarizeTextParameters summarizeTextParameters) =>
 {
     return await LogTelemetryAndSummarizeContents(context, summarizeTextParameters.TextToSummarize);
+});
+
+app.MapPost($"/v2/summarize_text", async (SummarizeTextParameters summarizeTextParameters) =>
+{
+    var summary = await openAISummarizer.Summarize(summarizeTextParameters.TextToSummarize);
+
+    return Results.Text(JsonConvert.SerializeObject(new JArray
+    {
+        new JObject {["kind"] = "title", ["title"] = "Hier is je versimpelde brief"},
+        new JObject {["kind"] = "section", ["title"] = "Van wie is de brief?", ["index"] = "1"},
+        new JObject {["kind"] = "textblock", ["text"] = summary.sender},
+        new JObject {["kind"] = "section", ["title"] = "Wat staat er in?", ["index"] = "2"},
+        summary.summary_sentences.Select(s => new JObject {["kind"] = "textblock", ["text"] = s.text, ["emoji"] = s.emoji})
+    }));
 });
 
 app.MapGet("/exception", () =>
