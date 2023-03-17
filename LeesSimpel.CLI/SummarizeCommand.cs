@@ -1,3 +1,4 @@
+using System.Text;
 using DefaultNamespace;
 using Newtonsoft.Json;
 using Spectre.Console.Cli;
@@ -23,14 +24,15 @@ class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
             {
                 var readAllText = inputFile.ReadAllText();
                 var summary = await SummarizeWithTechnique(readAllText, settings.Technique);
-                outputFile.WriteAllText(JsonConvert.SerializeObject(summary, Formatting.Indented));
+                outputFile.WriteAllBytes(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(summary, Formatting.Indented)));
             });
     }
 
     static Task<Summary> SummarizeWithTechnique(string readAllText, string? settingsTechnique) =>
         (settingsTechnique ?? "gpt3") switch
         {
-            "gpt4" => ChatBasedSummarizer.Summarize(readAllText),
+            "gpt4" => ChatBasedSummarizer.Summarize(readAllText, "gpt-4"),
+            "gpt35" => ChatBasedSummarizer.Summarize(readAllText, "gpt-3.5-turbo"),
             "gpt3" => ClassicHackathonSummarizer.Summarize(readAllText),
             _ => throw new ArgumentException($"Unknown technique: {settingsTechnique}")
         };

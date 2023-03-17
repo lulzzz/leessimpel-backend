@@ -3,7 +3,7 @@ public class Summary
     public struct Sentence
     {
         public string text  { get; set; }
-        public string emoji  { get; set; }
+        public string? emoji  { get; set; }
     }
 
     public required Sentence[] summary_sentences { get; set; }
