@@ -7,10 +7,11 @@
     <Nullable>enable</Nullable>
     <RootNamespace />
     <UserSecretsId>0db459bf-07a2-4ddc-948a-47009848268b</UserSecretsId>
+    <WarningsAsErrors>true</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Betalgo.OpenAI.GPT3" Version="6.6.7" />
+    <PackageReference Include="Betalgo.OpenAI.GPT3" Version="6.7.2" />
     <PackageReference Include="CliWrap" Version="3.6.0" />
     <PackageReference Include="Spectre.Console.Cli" Version="0.46.1-preview.0.7" />
   </ItemGroup>

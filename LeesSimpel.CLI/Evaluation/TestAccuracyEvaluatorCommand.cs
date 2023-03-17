@@ -70,9 +70,9 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
     class TestResult
     {
         public bool Pass;
-        public string[] FailureReasons;
-        public string DebugGtpOutput;
-        public KeyMessageResult[] KeyMessageResults;
+        public required string[] FailureReasons;
+        public required string DebugGtpOutput;
+        public required KeyMessageResult[] KeyMessageResults;
     }
     static async Task<TestResult> RunSingleTest(NPath testFile)
     {
@@ -80,22 +80,22 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         var jsonReader = new JsonTextReader(stringReader);
         var testCaseObject = await JObject.LoadAsync(jsonReader);
 
-        var summary = testCaseObject["summary_to_evaluate"].ToObject<Summary>();
+        var summary = testCaseObject["summary_to_evaluate"]!.ToObject<Summary>() ?? throw new($"failed to retrieve summary_to_evaluate from {testFile.FileName}");
         var propertyName = "evaluation_criteria";
         var evaluationCriteriaArray = testCaseObject[propertyName] as JArray ??
                                       throw new ArgumentException($"{propertyName} was not a JArray");
         var evaluationCriteria = AccuracyEvaluationCriteria.Parse(evaluationCriteriaArray);
         var evaluationResult = await AccuracyEvaluatorGTP3.Evaluate(summary, evaluationCriteria);
-        bool[] expectedResult = testCaseObject["expected_results"].ToObject<bool[]>();
+        bool[] expectedResult = testCaseObject["expected_results"]!.ToObject<bool[]>()!;
 
-        var pass = Compare(evaluationResult.keyMessageResults, expectedResult, evaluationCriteria, out var reasons);
+        var pass = Compare(evaluationResult.KeyMessageResults, expectedResult, evaluationCriteria, out var reasons);
 
-        return new TestResult()
+        return new()
         {
             Pass = pass,
-            DebugGtpOutput = evaluationResult.debug_gpt3_info, 
+            DebugGtpOutput = evaluationResult.DebugGpt3Info, 
             FailureReasons = reasons,
-            KeyMessageResults = evaluationResult.keyMessageResults
+            KeyMessageResults = evaluationResult.KeyMessageResults
         };
     }
 

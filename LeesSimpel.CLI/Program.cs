@@ -15,6 +15,7 @@ app.Configure(config =>
     config.AddCommand<SummarizeCommand>("summarize");
     config.AddCommand<TestAccuracyEvaluatorCommand>("testevaluator");
     config.AddCommand<EvaluateCommand>("evaluate");
+    config.AddCommand<GraphCommand>("graph");
     config.AddCommand<TempTest>("temptest");
 });
 

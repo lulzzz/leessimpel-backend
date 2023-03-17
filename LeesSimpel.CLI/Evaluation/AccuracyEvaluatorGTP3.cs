@@ -40,7 +40,7 @@ Restrict your response to a json object where each key is the message, and the v
         });
 
         if (!completionResult.Successful)
-            throw new Exception("GTP3 prompt was unsuccessful. "+completionResult.Error?.Message);
+            throw new Exception("GTP3 prompt was unsuccessful. "+completionResult);
 
         var response = completionResult.Choices.FirstOrDefault()!.Text;
 
@@ -56,29 +56,29 @@ Restrict your response to a json object where each key is the message, and the v
         var keyMessageResults = new List<KeyMessageResult>();
         foreach (var kvp in jo)
         {
-            int index = kvp.Value.Value<int>();
+            int index = kvp.Value?.Value<int>() ?? 999;
             keyMessageResults.Add(new() { Message = kvp.Key, FoundAt = index, Weight = 1 /*todo: fix weight*/});
         }
 
-        return new EvaluationResult()
+        return new()
         {
-            keyMessageResults = keyMessageResults.ToArray(),
-            debug_gpt3_info = debugInfo.ToString()
+            KeyMessageResults = keyMessageResults.ToArray(),
+            DebugGpt3Info = debugInfo.ToString()
         };
     }
 }
 
-public class EvaluationResult
+public record EvaluationResult()
 {
-    public KeyMessageResult[] keyMessageResults;
-    public string debug_gpt3_info;
+    public required KeyMessageResult[] KeyMessageResults { get; init; }
+    public required string DebugGpt3Info { get; init; }
 }
 
-public struct KeyMessageResult
+public record KeyMessageResult
 {
-    public string Message;
-    public float Weight;
-    public int FoundAt;
+    public required string Message { get; init; }
+    public required float Weight { get; init; }
+    public required int FoundAt { get; init; }
 }
 
 static class EnumerableExtensions
