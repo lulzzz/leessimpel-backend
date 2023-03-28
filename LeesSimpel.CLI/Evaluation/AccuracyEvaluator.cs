@@ -37,7 +37,7 @@ If you dont find the key message anywhere, use 0.
         var completionResult = await OpenAITools.Service.ChatCompletion.CreateCompletion(chatCompletionCreateRequest);
 
         if (!completionResult.Successful)
-            throw new Exception("GTP3 prompt was unsuccessful. "+completionResult);
+            throw new Exception("GPT prompt was unsuccessful. "+completionResult);
 
         var response = completionResult.Choices.First().Message.Content;
 

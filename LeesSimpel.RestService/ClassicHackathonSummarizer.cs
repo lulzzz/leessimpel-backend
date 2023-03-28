@@ -29,14 +29,14 @@ Make sure you return a valid JSON syntax.",
         });
 
         if (!completionResult.Successful)
-            throw new SummarizeException("GTP3 summarize prompt was unsuccessful. "+completionResult.Error?.Message);
+            throw new SummarizeException("GPT summarize prompt was unsuccessful. "+completionResult.Error?.Message);
 
         var response = completionResult.Choices.FirstOrDefault()!.Text;
         
         int startIndex = response.IndexOf('{');
         int endIndex = response.LastIndexOf('}');
 
-        Exception MakeSummarizeException() => new SummarizeException($"GTP response wasn't valid json: {response}");
+        Exception MakeSummarizeException() => new SummarizeException($"GPT response wasn't valid json: {response}");
 
         if (startIndex < 0 || endIndex < 0 || startIndex >= endIndex) 
             throw MakeSummarizeException();

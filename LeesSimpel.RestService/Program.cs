@@ -26,11 +26,14 @@ var azureOCR = new AzureFormRecognizer();
 
 async Task<IResult> LogTelemetryAndSummarizeContents(HttpContext httpContext, string contentsOfLetter)
 {
-    // Write request body to App Insights
     var requestTelemetry = httpContext.Features.Get<RequestTelemetry>();
     requestTelemetry?.Properties.Add("OCRResult", contentsOfLetter);
-    var summary = await ClassicHackathonSummarizer.Summarize(contentsOfLetter);
-    return Results.Text(JsonConvert.SerializeObject(summary));
+    //var summary = await ClassicHackathonSummarizer.Summarize(contentsOfLetter);
+    var summary = await GPT4Summarizer.Summarize(contentsOfLetter, "gpt-3.5-turbo", requestTelemetry);
+    var serializeObject = JsonConvert.SerializeObject(summary);
+    
+    //Console.WriteLine($"Response: {serializeObject}");
+    return Results.Text(serializeObject);
 }
 
 app.MapPost("/summarize_image", async (HttpContext context, IFormFile imageFile) =>

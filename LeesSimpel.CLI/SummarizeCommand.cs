@@ -1,5 +1,4 @@
 using System.Text;
-using DefaultNamespace;
 using Newtonsoft.Json;
 using Spectre.Console.Cli;
 
@@ -31,8 +30,8 @@ class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
     static Task<Summary> SummarizeWithTechnique(string readAllText, string? settingsTechnique) =>
         (settingsTechnique ?? "gpt3") switch
         {
-            "gpt4" => ChatBasedSummarizer.Summarize(readAllText, "gpt-4"),
-            "gpt35" => ChatBasedSummarizer.Summarize(readAllText, "gpt-3.5-turbo"),
+            "gpt35" => GPT4Summarizer.Summarize(readAllText, "gpt-3.5-turbo"),
+            "gpt4" => GPT4Summarizer.Summarize(readAllText, "gpt-4"),
             "gpt3" => ClassicHackathonSummarizer.Summarize(readAllText),
             _ => throw new ArgumentException($"Unknown technique: {settingsTechnique}")
         };

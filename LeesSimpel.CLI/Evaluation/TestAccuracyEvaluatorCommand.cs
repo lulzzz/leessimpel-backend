@@ -60,7 +60,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
             AnsiConsole.MarkupLine($"[red]FailureReason for [/]{kvp.Value.testFile.FileName}");
             foreach(var reason in kvp.Key.Result.FailureReasons)
                 AnsiConsole.MarkupLine(reason);
-            AnsiConsole.MarkupLine(kvp.Key.Result.DebugGtpOutput);
+            AnsiConsole.MarkupLine(kvp.Key.Result.DebugGptOutput);
             AnsiConsole.WriteLine();
         }
         
@@ -71,7 +71,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
     {
         public bool Pass;
         public required string[] FailureReasons;
-        public required string DebugGtpOutput;
+        public required string DebugGptOutput;
         public required KeyMessageResult[] KeyMessageResults;
     }
     static async Task<TestResult> RunSingleTest(NPath testFile)
@@ -93,7 +93,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         return new()
         {
             Pass = pass,
-            DebugGtpOutput = evaluationResult.DebugGpt3Info, 
+            DebugGptOutput = evaluationResult.DebugGpt3Info, 
             FailureReasons = reasons,
             KeyMessageResults = evaluationResult.KeyMessageResults
         };
