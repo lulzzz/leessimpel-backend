@@ -80,8 +80,3 @@ public record KeyMessageResult
     public required float Weight { get; init; }
     public required int FoundAt { get; init; }
 }
-
-static class EnumerableExtensions
-{
-    public static string SeparateWith(this IEnumerable<string> things, string seperator) => string.Join(seperator, things);
-}
