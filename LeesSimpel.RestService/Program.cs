@@ -1,6 +1,5 @@
 using Microsoft.ApplicationInsights.DataContracts;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -47,18 +46,18 @@ app.MapPost("/summarize_text", async (HttpContext context, SummarizeTextParamete
     return await LogTelemetryAndSummarizeContents(context, summarizeTextParameters.TextToSummarize);
 });
 
-app.MapPost($"/v2/summarize_text", async (SummarizeTextParameters summarizeTextParameters) =>
+app.MapPost($"/v2/summarize_text", async (HttpResponse response, SummarizeTextParameters summarizeTextParameters) =>
 {
-    var summary = await ClassicHackathonSummarizer.Summarize(summarizeTextParameters.TextToSummarize);
-
-    return Results.Text(JsonConvert.SerializeObject(new JArray
+    response.Headers.Add("Content-Type", "text/event-stream");
+    
+    await foreach (var o in GPT4Summarizer.SummarizeStreamed(summarizeTextParameters.TextToSummarize, "gpt-3.5-turbo"))
     {
-        new JObject {["kind"] = "title", ["title"] = "Hier is je versimpelde brief"},
-        new JObject {["kind"] = "section", ["title"] = "Van wie is de brief?", ["index"] = "1"},
-        new JObject {["kind"] = "textblock", ["text"] = summary.sender},
-        new JObject {["kind"] = "section", ["title"] = "Wat staat er in?", ["index"] = "2"},
-        summary.summary_sentences.Select(s => new JObject {["kind"] = "textblock", ["text"] = s.text, ["emoji"] = s.emoji})
-    }));
+        await response.WriteAsync(o);
+        await response.WriteAsync("\n");
+        await response.Body.FlushAsync();
+    }
+
+    return Results.Ok();
 });
 
 app.MapGet("/exception", () =>
