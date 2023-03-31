@@ -86,7 +86,7 @@ public static class GPT4Summarizer
         {
             var jobject = JObject.Parse(line);
             var text = jobject["text"].Value<string>();
-            var emoji = jobject["emoji"].Value<string>().Substring(0,1);
+            var emoji = jobject["emoji"].Value<string>();
             return (text, emoji);
         }
         catch (Exception)
