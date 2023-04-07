@@ -60,6 +60,31 @@ app.MapPost($"/v2/summarize_text", async (HttpResponse response, SummarizeTextPa
     return Results.Ok();
 });
 
+app.MapPost("/feedback", async (HttpContext context, IFormFileCollection images) =>
+{
+    // Read the parameters from the request body
+    //var form = await context.Request.ReadFormAsync();
+    //
+    // if (form.TryGetValue("ocrresult", out var ocrResult))
+    //     Console.WriteLine($"OCRResult: {ocrResult}");
+    //
+    // if (form.TryGetValue("humanfeedback", out var humanfeedback))
+    //     Console.WriteLine($"humanfeedback: {humanfeedback}");
+    //
+    // if (form.TryGetValue("summary", out var summary))
+    //     Console.WriteLine($"summary: {summary}");
+    //
+    // foreach (var image in images)
+    // {
+    //     Console.WriteLine("image: " + image.FileName);
+    // }
+
+    await Task.Delay(TimeSpan.FromSeconds(3));
+
+    // Return JSON object with feedbackid
+    return Results.Json(new { feedbackid = "123456" });
+});
+
 app.MapGet("/exception", () =>
 {
     throw new ArgumentException("EXCEPTION_TEST_LUCAS");
