@@ -60,29 +60,21 @@ app.MapPost($"/v2/summarize_text", async (HttpResponse response, SummarizeTextPa
     return Results.Ok();
 });
 
+var feedbackUploader = new UserFeedbackUploader();
+
 app.MapPost("/feedback", async (HttpContext context, IFormFileCollection images) =>
 {
-    // Read the parameters from the request body
-    //var form = await context.Request.ReadFormAsync();
-    //
-    // if (form.TryGetValue("ocrresult", out var ocrResult))
-    //     Console.WriteLine($"OCRResult: {ocrResult}");
-    //
-    // if (form.TryGetValue("humanfeedback", out var humanfeedback))
-    //     Console.WriteLine($"humanfeedback: {humanfeedback}");
-    //
-    // if (form.TryGetValue("summary", out var summary))
-    //     Console.WriteLine($"summary: {summary}");
-    //
-    // foreach (var image in images)
-    // {
-    //     Console.WriteLine("image: " + image.FileName);
-    // }
+     //Read the parameters from the request body
+    var form = await context.Request.ReadFormAsync();
 
-    await Task.Delay(TimeSpan.FromSeconds(3));
+    form.TryGetValue("humanfeedback", out var humanfeedback);
+    form.TryGetValue("ocrResult", out var ocrResult);
+    form.TryGetValue("summary", out var summary);
 
+    string feedbackId = await feedbackUploader.Upload(ocrResult, humanfeedback, summary, images);     
+     
     // Return JSON object with feedbackid
-    return Results.Json(new { feedbackid = "123456" });
+    return Results.Json(new { feedbackid = feedbackId });
 });
 
 app.MapGet("/exception", () =>

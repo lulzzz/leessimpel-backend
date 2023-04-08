@@ -12,6 +12,8 @@
   <ItemGroup>
     <PackageReference Include="Azure.AI.FormRecognizer" Version="4.0.0" />
     <PackageReference Include="Betalgo.OpenAI.GPT3" Version="6.7.2" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.60.0" />
+    <PackageReference Include="Google.Apis.Drive.v3" Version="1.60.0.2986" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
