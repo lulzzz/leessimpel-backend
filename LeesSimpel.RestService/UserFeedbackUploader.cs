@@ -10,7 +10,10 @@ public class UserFeedbackUploader
 
     public UserFeedbackUploader()
     {
-        var credential = GoogleCredential.FromJson(Secrets.Get("GDRIVE_SERVICE_ACCOUNT")).CreateScoped(DriveService.Scope.Drive);
+        var base64_encoded_json = Secrets.Get("GDRIVE_SERVICE_ACCOUNT");
+        string decodedJson = Encoding.UTF8.GetString(Convert.FromBase64String(base64_encoded_json));
+
+        var credential = GoogleCredential.FromJson(decodedJson).CreateScoped(DriveService.Scope.Drive);
         _service = new(new()
         {
             HttpClientInitializer = credential,
