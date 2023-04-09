@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 abstract record AppMessage;
 record SectionAppMessage(string index, string title) : AppMessage;
 record TextBlockAppMessage(string text, string? emoji) : AppMessage;
-record TitleAppMessage(string title, bool succes) : AppMessage;
+record TitleAppMessage(string title, bool success) : AppMessage;
     
 class AppMessageJsonConverter : JsonConverter<AppMessage>
 {

@@ -11,6 +11,15 @@ public static class SummarizeEndPoint
     static async Task<IResult> Post_Summarize_Text(HttpResponse response, GPT4Summarizer gpt4Summarizer, SummarizeTextParameters summarizeTextParameters)
     {
         response.Headers.Add("Content-Type", "text/event-stream");
+
+        if (summarizeTextParameters.TextToSummarize.Length < 40)
+        {
+            await response.WriteAppMessage(new TitleAppMessage("Er ging iets mis", false));
+            await response.WriteAppMessage(new TextBlockAppMessage("Er lijkt geen tekst in de foto te staan", "📷"));
+            await response.WriteAppMessage(new TextBlockAppMessage("Probeer het nog een keer", "🔁"));
+            return Results.Empty;
+        }
+        
         bool sentTitle = false;
         try
         {
@@ -19,8 +28,7 @@ public static class SummarizeEndPoint
 
             await foreach (var appMessage in AppMessagesFor(promptResponseMessages))
             {
-                await response.WriteAsync(JsonSerializer.Serialize(appMessage, AppMessageJsonConverter.Options));
-                await response.WriteAsync("\n");
+                await response.WriteAppMessage(appMessage);
                 await response.Body.FlushAsync();
                 
                 if (appMessage is TitleAppMessage)
@@ -29,11 +37,8 @@ public static class SummarizeEndPoint
         }
         catch (Exception)
         {
-            foreach (var appMessage in ErrorMessagesFor(sentTitle))
-            {
-                await response.WriteAsync(JsonSerializer.Serialize(appMessage, AppMessageJsonConverter.Options));
-                await response.WriteAsync("\n");
-            }
+            foreach (var appMessage in ErrorMessagesFor(sentTitle)) 
+                await response.WriteAppMessage(appMessage);
         }
 
         return Results.Empty;
