@@ -24,7 +24,7 @@ public static class SummarizeEndPoint
         try
         {
             var promptResponseMessages =
-                gpt4Summarizer.PromptResponseMessagesFor(summarizeTextParameters.TextToSummarize, "gpt-3.5-turbo");
+                gpt4Summarizer.PromptResponseMessagesFor(summarizeTextParameters.TextToSummarize, /*"gpt-3.5-turbo"*/ "gpt-4");
 
             await foreach (var appMessage in AppMessagesFor(promptResponseMessages))
             {
@@ -60,35 +60,56 @@ public static class SummarizeEndPoint
     {
         bool firstMessage = true;
         bool sentTitle = false;
-        bool sentSection = false;
+        bool sentContentsSection = false;
+        bool hasSender = false;
+        int nextSectionID = 1;
         
         await foreach (var promptResponseMessage in promptResponseMessages)
         {
             if (firstMessage)
             {
-                if (promptResponseMessage is GPT4Summarizer.SenderMessage senderMessage && senderMessage.sender != null)
+                firstMessage = false;
+                if (promptResponseMessage is GPT4Summarizer.SenderMessage senderMessage)
                 {
-                    yield return new TitleAppMessage(title: "Hier is je versimpelde brief", true);
-                    sentTitle = true;
-                    yield return new SectionAppMessage(title: "Van wie is de brief?", index: "1");
-                    yield return new TextBlockAppMessage(text: senderMessage.sender, emoji:null);
-                    yield return new SectionAppMessage(title: "Wat staat er in?", index: "2");
-                    sentSection = true;
+                    if (senderMessage.sender != null)
+                    {
+                        yield return new TitleAppMessage(title: "Hier is je versimpelde brief", true);
+                        sentTitle = true;
+                        hasSender = true;
+                        yield return new SectionAppMessage(title: "Van wie is de brief?",
+                            index: (nextSectionID++).ToString());
+                        yield return new TextBlockAppMessage(text: senderMessage.sender, emoji: null);
+                    }
+
                     continue;
                 }
 
-                firstMessage = false;
             }
 
+            if (!sentTitle)
+            {
+                yield return new TitleAppMessage(title: "Gelukt!", true);
+                sentTitle = true;
+            }
+            
             switch (promptResponseMessage)
             {
+                case GPT4Summarizer.AdvertisementMessage msgAdvertisementMessage:
+                {
+                    if (msgAdvertisementMessage.is_advertisement)
+                    {
+                        yield return new SectionAppMessage(title: "Wat is dit voor brief?", index:(nextSectionID++).ToString());
+                        yield return new TextBlockAppMessage(text: "Reclame", emoji:null);
+                    }
+                    continue;
+                }
+                    
                 case GPT4Summarizer.TextBlockMessage msg:
                 {
-                    if (!sentSection)
+                    if (!sentContentsSection)
                     {
-                        yield return new TitleAppMessage(title: "Gelukt!", true);
-                        yield return new SectionAppMessage(title: "Wat staat er?", index: "1");
-                        sentSection = true;
+                        yield return new SectionAppMessage(title: hasSender ? "Wat staat er in?" : "Wat staat er?", index: (nextSectionID++).ToString());
+                        sentContentsSection = true;
                     }
                 
                     yield return new TextBlockAppMessage(emoji: msg.emoji, text: msg.text);
@@ -101,6 +122,12 @@ public static class SummarizeEndPoint
                     yield break;
                 }
             }
+        }
+
+        if (firstMessage)
+        {
+            foreach (var msg in ErrorMessagesFor(sentTitle))
+                yield return msg;
         }
     }
 }

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="GPT4SystemMessage.txt" />
+    <EmbeddedResource Include="GPT35SystemMessage.txt" />
   </ItemGroup>
 
 </Project>

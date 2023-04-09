@@ -1,11 +1,12 @@
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Encodings.Web;
 using Spectre.Console.Cli;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
 {
-    
     internal class Settings : CommandSettings
     {
         [CommandArgument(0, "<inputset>")]
@@ -22,8 +23,10 @@ class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
             async (inputFile, outputFile) =>
             {
                 var readAllText = inputFile.ReadAllText();
-                var summary = await SummarizeWithTechnique(readAllText, settings.Technique);
-                outputFile.WriteAllBytes(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(summary, Formatting.Indented)));
+                var promptMessages = await SummarizeWithTechnique(readAllText, settings.Technique);
+                var jsons = promptMessages.Select(m => Regex.Unescape(JsonSerializer.Serialize(m))).ToArray();
+                var lines = jsons.SeparateWith("\n");
+                outputFile.WriteAllBytes(new UTF8Encoding(true).GetBytes(lines));
             });
     }
 

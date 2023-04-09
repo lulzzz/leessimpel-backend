@@ -1,21 +1,32 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using OpenAI.GPT3.ObjectModels.RequestModels;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
 
 public class GPT4Summarizer
 {
-    readonly string _systemMessage;
+    readonly string _systemMessage4;
+    readonly string _systemMessage35;
     public GPT4Summarizer()
     {
-       _systemMessage = Tools.ReadTextFromResource("GPT4SystemMessage", typeof(GPT4Summarizer).Assembly);
+       _systemMessage4 = Tools.ReadTextFromResource("GPT4SystemMessage", typeof(GPT4Summarizer).Assembly);
+       _systemMessage35 = Tools.ReadTextFromResource("GPT35SystemMessage", typeof(GPT4Summarizer).Assembly);
     }
     
     //these types represent the dataprotocol between data languagemodel and the server
+    
+    [JsonDerivedType(typeof(SenderMessage))]
+    [JsonDerivedType(typeof(TextBlockMessage))]
+    [JsonDerivedType(typeof(ErrorMessage))]
+    [JsonDerivedType(typeof(AdvertisementMessage))]
     public abstract record PromptResponseMessage;
+
     public record SenderMessage(string sender) : PromptResponseMessage;
     public record TextBlockMessage(string? emoji, string text) : PromptResponseMessage;
     public record ErrorMessage(string error) : PromptResponseMessage;
+    public record AdvertisementMessage(bool is_advertisement) : PromptResponseMessage;
+    
 
     
     public async IAsyncEnumerable<PromptResponseMessage> PromptResponseMessagesFor(string ocrResult, string model)
@@ -25,7 +36,7 @@ public class GPT4Summarizer
             Temperature = 0,
             Messages = new List<ChatMessage>()
             {
-                ChatMessage.FromSystem(_systemMessage),
+                ChatMessage.FromSystem(model == "gtp-3.5-turbo" ? _systemMessage35 : _systemMessage4),
                 ChatMessage.FromUser(ocrResult),
             },
             Model = model,
@@ -41,6 +52,9 @@ public class GPT4Summarizer
         StringBuilder sb = new StringBuilder();
         await foreach (var chatResponse in chatResponses)
         {
+            if (!chatResponse.Successful)
+                yield break;
+            
             var chunk = chatResponse.Choices.First().Message.Content;
             if (string.IsNullOrEmpty(chunk))
                 continue;
@@ -69,7 +83,7 @@ public class GPT4Summarizer
     }
 
 
-    static PromptResponseMessage ParseLineFromPromptResponse(string promptResponseLine)
+    public static PromptResponseMessage ParseLineFromPromptResponse(string promptResponseLine)
     {
         try
         {
@@ -78,6 +92,9 @@ public class GPT4Summarizer
             if (rootElement.TryGetProperty("sender", out _))
                 return JsonSerializer.Deserialize<SenderMessage>(promptResponseLine)!;
 
+            if (rootElement.TryGetProperty("is_advertisement", out _))
+                return JsonSerializer.Deserialize<AdvertisementMessage>(promptResponseLine)!;
+            
             if (rootElement.TryGetProperty("text", out _))
                 return JsonSerializer.Deserialize<TextBlockMessage>(promptResponseLine)!;
 
