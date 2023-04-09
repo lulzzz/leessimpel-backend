@@ -29,11 +29,11 @@ public class UserFeedbackUploader
             .Select(img => UploadFileForFeedback(thisFeedbackFolder, img.FileName, img.OpenReadStream(), img.ContentType))
             .ToList();
         
-        if (ocrResult != null)
+        if (!string.IsNullOrEmpty(ocrResult))
             uploads.Add(UploadFileForFeedback(thisFeedbackFolder, "ocrresult.txt", StreamForString(ocrResult), "text/plain"));
-        if (summary != null)
+        if (!string.IsNullOrEmpty(summary))
             uploads.Add(UploadFileForFeedback(thisFeedbackFolder, "summary.json", StreamForString(summary), "text/plain"));
-        if (humanFeedback != null)
+        if (!string.IsNullOrEmpty(humanFeedback))
             uploads.Add(UploadFileForFeedback(thisFeedbackFolder, "humanfeedback.txt", StreamForString(humanFeedback), "text/plain"));
         
         await Task.WhenAll(uploads);
