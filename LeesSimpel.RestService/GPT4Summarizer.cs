@@ -51,7 +51,8 @@ public class GPT4Summarizer
             for (int i = 0; i < lines.Length - 1; i++)
             {
                 var fullLine = lines[i].TrimEnd('\r');
-                yield return fullLine;
+                if (fullLine.Length>0)
+                    yield return fullLine;
             }
 
             sb.Clear();

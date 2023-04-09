@@ -12,7 +12,6 @@ public static class SummarizeEndPoint
     {
         response.Headers.Add("Content-Type", "text/event-stream");
         bool sentTitle = false;
-        var jsonOptions = new JsonSerializerOptions() {Converters = {new AppMessageJsonConverter()}, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault};
         try
         {
             var promptResponseMessages =
@@ -20,7 +19,7 @@ public static class SummarizeEndPoint
 
             await foreach (var appMessage in AppMessagesFor(promptResponseMessages))
             {
-                await response.WriteAsync(JsonSerializer.Serialize(appMessage, jsonOptions));
+                await response.WriteAsync(JsonSerializer.Serialize(appMessage, AppMessageJsonConverter.Options));
                 await response.WriteAsync("\n");
                 await response.Body.FlushAsync();
                 
@@ -32,7 +31,7 @@ public static class SummarizeEndPoint
         {
             foreach (var appMessage in ErrorMessagesFor(sentTitle))
             {
-                await response.WriteAsync(JsonSerializer.Serialize(appMessage, jsonOptions));
+                await response.WriteAsync(JsonSerializer.Serialize(appMessage, AppMessageJsonConverter.Options));
                 await response.WriteAsync("\n");
             }
         }

@@ -8,6 +8,8 @@ record TitleAppMessage(string title, bool succes) : AppMessage;
     
 class AppMessageJsonConverter : JsonConverter<AppMessage>
 {
+    public static JsonSerializerOptions Options { get; } = new() {Converters = {new AppMessageJsonConverter()}, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault};
+    
     public override AppMessage Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         throw new NotImplementedException();

@@ -42,6 +42,26 @@ app.MapPost("/feedback", async (HttpContext context, IFormFileCollection images,
     return Results.Json(new { feedbackid = feedbackId });
 });
 
+app.MapGet($"/privacy", async (HttpContext context) =>
+{
+    IEnumerable<AppMessage> messages = new TextBlockAppMessage[]
+    {
+        new("De app slaat de brief niet op.", "🙈"),
+        new("De app gebruikt AI van OpenAI om de tekst in de brief te versimpelen", "🤖"),
+        new("OpenAI bewaart de tekst niet langer dan 30 dagen. Dat doen ze alleen om te controleren of mensen OpenAI niet misbruiken voor dingen die verboden zijn.", "🔒"),
+        new("We vragen bij elke brief om je toestemming", "👍"),
+        new("Je kunt ook eerst je naam en adres zwart maken", "🏴"),
+        new("De app doet het dan nog steeds", "✅"),
+        new("Meer weten over privacy? Kijk op leessimpel.nl/privacy", "🔒"),
+    };
+    foreach (var msg in messages.Prepend(new TitleAppMessage("Wat gebeurt er met je foto", succes:true)))
+    {
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(msg, AppMessageJsonConverter.Options));
+        await context.Response.WriteAsync("\n");
+    }
+    return Results.Empty;
+});
+
 app.MapGet("/exception", () =>
 {
     throw new ArgumentException("EXCEPTION_TEST_LUCAS");
