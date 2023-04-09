@@ -14,9 +14,9 @@ public static class SummarizeEndPoint
 
         if (summarizeTextParameters.TextToSummarize.Length < 40)
         {
-            await response.WriteAppMessage(new TitleAppMessage("Er ging iets mis", false));
-            await response.WriteAppMessage(new TextBlockAppMessage("Er lijkt geen tekst in de foto te staan", "📷"));
-            await response.WriteAppMessage(new TextBlockAppMessage("Probeer het nog een keer", "🔁"));
+            await response.WriteAppMessage(new TitleAppMessage("Er ging iets mis.", false));
+            await response.WriteAppMessage(new TextBlockAppMessage("Er lijkt geen tekst in de foto te staan.", "📷"));
+            await response.WriteAppMessage(new TextBlockAppMessage("Probeer het nog een keer.", "🔁"));
             return Results.Empty;
         }
         
@@ -59,7 +59,6 @@ public static class SummarizeEndPoint
     static async IAsyncEnumerable<AppMessage> AppMessagesFor(IAsyncEnumerable<GPT4Summarizer.PromptResponseMessage> promptResponseMessages)
     {
         bool firstMessage = true;
-        bool hadSender = false;
         bool sentTitle = false;
         bool sentSection = false;
         
