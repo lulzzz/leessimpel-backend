@@ -17,7 +17,7 @@ class EvaluateCommand : AsyncCommand<EvaluateCommand.Settings>
             settings.InputSet + "_evaluations",
             async (inputFile, outputFile) =>
             {
-                var summary = JObject.Parse(inputFile.ReadAllText()).ToObject<Summary>() ?? throw new($"failed to parse summary from {inputFile.FileName}");
+                var summary = inputFile.ReadAllLines();
                 var criteriafile = Directories.TrainingSet.Combine("evaluation_criteria").Combine(inputFile.FileName);
 
                 if (!criteriafile.FileExists())
@@ -27,8 +27,7 @@ class EvaluateCommand : AsyncCommand<EvaluateCommand.Settings>
                 }
                 var evaluationCriteria = AccuracyEvaluationCriteria.Parse(criteriafile.ReadAllText());
                 var evaluationResult = await AccuracyEvaluator.Evaluate(summary, evaluationCriteria);
-                int characterCount = summary.summary_sentences.Sum(s => s.text.Length);
-
+                int characterCount = summary.Sum(s => (JObject.Parse(s)["text"] ?? "").Value<string>()?.Length ?? 0);
 
                 var foundWeight = evaluationResult.KeyMessageResults.Where(m => m.FoundAt != 0).Sum(m => m.Weight);
                 var totalWeight = evaluationResult.KeyMessageResults.Sum(m => m.Weight);

@@ -27,12 +27,13 @@ class SummarizeCommand : AsyncCommand<SummarizeCommand.Settings>
             });
     }
 
-    static Task<Summary> SummarizeWithTechnique(string readAllText, string? settingsTechnique) =>
+    static Task<string[]> SummarizeWithTechnique(string readAllText, string? settingsTechnique) =>
         (settingsTechnique ?? "gpt3") switch
         {
-            "gpt35" => GPT4Summarizer.Summarize(readAllText, "gpt-3.5-turbo"),
-            "gpt4" => GPT4Summarizer.Summarize(readAllText, "gpt-4"),
-            "gpt3" => ClassicHackathonSummarizer.Summarize(readAllText),
+            "gpt35" => new GPT4Summarizer().SummarizeStreamedRaw(readAllText, "gpt-3.5-turbo").ToArray(),
+            "gpt4" => new GPT4Summarizer().SummarizeStreamedRaw(readAllText, "gpt-4").ToArray(),
             _ => throw new ArgumentException($"Unknown technique: {settingsTechnique}")
         };
+    
+
 }

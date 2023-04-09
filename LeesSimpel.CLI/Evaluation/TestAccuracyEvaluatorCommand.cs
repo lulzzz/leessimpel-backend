@@ -80,7 +80,7 @@ class TestAccuracyEvaluatorCommand : AsyncCommand
         var jsonReader = new JsonTextReader(stringReader);
         var testCaseObject = await JObject.LoadAsync(jsonReader);
 
-        var summary = testCaseObject["summary_to_evaluate"]!.ToObject<Summary>() ?? throw new($"failed to retrieve summary_to_evaluate from {testFile.FileName}");
+        var summary = testCaseObject["summary_to_evaluate"]!.ToObject<string[]>() ?? throw new($"failed to retrieve summary_to_evaluate from {testFile.FileName}");
         var propertyName = "evaluation_criteria";
         var evaluationCriteriaArray = testCaseObject[propertyName] as JArray ??
                                       throw new ArgumentException($"{propertyName} was not a JArray");

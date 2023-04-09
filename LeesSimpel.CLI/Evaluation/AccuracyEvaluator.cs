@@ -12,13 +12,13 @@ respond with a json object where the key is a key message, and the value is the 
 If you dont find the key message anywhere, use 0.
 ";
     
-    public static async Task<EvaluationResult> Evaluate(Summary summary, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
+    public static async Task<EvaluationResult> Evaluate(string[] rawPromptResponse, AccuracyEvaluationCriteria accuracyEvaluationCriteria)
     {
-        string MakeNumberedBulletList(Summary s)
+        string MakeNumberedBulletList(string[] rawPromptResponse)
         {
             var sb = new StringBuilder();
-            for (int i = 0; i != s.summary_sentences.Length; i++)
-                sb.AppendLine($"{i+1}: {s.summary_sentences[i].text}");
+            for (int i = 0; i != rawPromptResponse.Length; i++)
+                sb.AppendLine($"{i+1}: {rawPromptResponse[i]}");
             return sb.ToString();
         }
 
@@ -30,7 +30,7 @@ If you dont find the key message anywhere, use 0.
             Messages = new List<ChatMessage>()
             {
                 ChatMessage.FromSystem(SystemMessageText),
-                ChatMessage.FromUser(MakeNumberedBulletList(summary)),
+                ChatMessage.FromUser(MakeNumberedBulletList(rawPromptResponse)),
                 ChatMessage.FromUser(accuracyEvaluationCriteria.Criteria.OfType<AccuracyEvaluationCriteria.ContainsKeyMessage>().Select(f=>$"- {f.keyMessage}").SeparateWith("\n"))
             }
         };
