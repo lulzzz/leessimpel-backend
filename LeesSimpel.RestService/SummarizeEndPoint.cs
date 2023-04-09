@@ -1,5 +1,5 @@
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public static class SummarizeEndPoint
 {
@@ -11,73 +11,92 @@ public static class SummarizeEndPoint
     static async Task<IResult> Post_Summarize_Text(HttpResponse response, GPT4Summarizer gpt4Summarizer, SummarizeTextParameters summarizeTextParameters)
     {
         response.Headers.Add("Content-Type", "text/event-stream");
+        bool sentTitle = false;
+        var jsonOptions = new JsonSerializerOptions() {Converters = {new AppMessageJsonConverter()}, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault};
         try
         {
-            var rawPromptResponseLines =
-                gpt4Summarizer.SummarizeStreamedRaw(summarizeTextParameters.TextToSummarize, "gpt-3.5-turbo");
+            var promptResponseMessages =
+                gpt4Summarizer.PromptResponseMessagesFor(summarizeTextParameters.TextToSummarize, "gpt-3.5-turbo");
 
-            await foreach (var o in ResultViewElementsFor(rawPromptResponseLines))
+            await foreach (var appMessage in AppMessagesFor(promptResponseMessages))
             {
-                await response.WriteAsync(o);
+                await response.WriteAsync(JsonSerializer.Serialize(appMessage, jsonOptions));
                 await response.WriteAsync("\n");
                 await response.Body.FlushAsync();
+                
+                if (appMessage is TitleAppMessage)
+                    sentTitle = true;
             }
         }
         catch (Exception)
         {
-            await response.WriteAsync("{\"text\":\"Het is niet gelukt\", \"emoji\":\"🚨\"}\n");
-            await response.WriteAsync("{\"text\":\"Probeer het nog een keer\", \"emoji\":\"🔁\"}\n");
-            await response.Body.FlushAsync();
+            foreach (var appMessage in ErrorMessagesFor(sentTitle))
+            {
+                await response.WriteAsync(JsonSerializer.Serialize(appMessage, jsonOptions));
+                await response.WriteAsync("\n");
+            }
         }
 
         return Results.Empty;
     }
 
-    static async IAsyncEnumerable<string> ResultViewElementsFor(IAsyncEnumerable<string> rawPromptResponseLines)
+    //these types represent the dataprotocol between the app server and the app client
+    static IEnumerable<AppMessage> ErrorMessagesFor(bool alreadySentTitle)
     {
-        bool firstLine = true;
-        await foreach (var line in rawPromptResponseLines)
-        {
-            if (firstLine)
-            {
-                yield return "{\"kind\":\"title\",\"title\": \"Hier is je versimpelde brief\"}";
-                yield return "{\"kind\":\"section\",\"title\": \"Van wie is de brief?\",\"index\":\"1\"}";
-                yield return JsonConvert.SerializeObject(new JObject()
-                {
-                    ["kind"] = "textblock",
-                    ["text"] = line
-                });
-
-                yield return "{\"kind\":\"section\",\"title\": \"Wat staat er in?\",\"index\":\"2\"}";
-                firstLine = false;
-                continue;
-            }
-
-            var (text, emoji) = ParseIntoTextAndEmoji(line);
-            if (text == null) 
-                continue;
-            var jObject = new JObject()
-            {
-                ["kind"] = "textblock",
-                ["text"] = text,
-                ["emoji"] = emoji ?? ""
-            };
+        var errorMessage = "Er is iets mis gegaan";
+        if (alreadySentTitle)
+            yield return new TextBlockAppMessage(emoji: "🚨", text: errorMessage);
+        else
+            yield return new TitleAppMessage(title: errorMessage, false);
                 
-            yield return JsonConvert.SerializeObject(jObject);
-        }
+        yield return new TextBlockAppMessage(emoji: "🔁", text: "Probeer het nog een keer");
+    }
+    
+    static async IAsyncEnumerable<AppMessage> AppMessagesFor(IAsyncEnumerable<GPT4Summarizer.PromptResponseMessage> promptResponseMessages)
+    {
+        bool firstMessage = true;
+        bool hadSender = false;
+        bool sentTitle = false;
+        bool sentSection = false;
         
-        static (string? text, string? emoji) ParseIntoTextAndEmoji(string line)
+        await foreach (var promptResponseMessage in promptResponseMessages)
         {
-            try
+            if (firstMessage)
             {
-                var jobject = JObject.Parse(line);
-                var text = jobject["text"]?.Value<string>();
-                var emoji = jobject["emoji"]?.Value<string>();
-                return (text, emoji);
+                if (promptResponseMessage is GPT4Summarizer.SenderMessage senderMessage && senderMessage.sender != null)
+                {
+                    yield return new TitleAppMessage(title: "Hier is je versimpelde brief", true);
+                    sentTitle = true;
+                    yield return new SectionAppMessage(title: "Van wie is de brief?", index: "1");
+                    yield return new TextBlockAppMessage(text: senderMessage.sender, emoji:null);
+                    yield return new SectionAppMessage(title: "Wat staat er in?", index: "2");
+                    sentSection = true;
+                    continue;
+                }
+
+                firstMessage = false;
             }
-            catch (Exception)
+
+            switch (promptResponseMessage)
             {
-                return (null, null);
+                case GPT4Summarizer.TextBlockMessage msg:
+                {
+                    if (!sentSection)
+                    {
+                        yield return new TitleAppMessage(title: "Gelukt!", true);
+                        yield return new SectionAppMessage(title: "Wat staat er?", index: "1");
+                        sentSection = true;
+                    }
+                
+                    yield return new TextBlockAppMessage(emoji: msg.emoji, text: msg.text);
+                    continue;
+                }
+                case GPT4Summarizer.ErrorMessage:
+                {
+                    foreach (var msg in ErrorMessagesFor(sentTitle))
+                        yield return msg;
+                    yield break;
+                }
             }
         }
     }

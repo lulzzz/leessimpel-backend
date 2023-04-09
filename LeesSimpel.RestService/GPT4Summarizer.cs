@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using OpenAI.GPT3.ObjectModels.RequestModels;
 using OpenAI.GPT3.ObjectModels.ResponseModels;
 
@@ -8,25 +10,17 @@ public class GPT4Summarizer
     {
        _systemMessage = Tools.ReadTextFromResource("GPT4SystemMessage", typeof(GPT4Summarizer).Assembly);
     }
-    static async IAsyncEnumerable<string?> ExtractMessagesFromResponse(IAsyncEnumerable<ChatCompletionCreateResponse> completions)
-    {
-        await foreach (var c in completions)
-            yield return c.Choices.FirstOrDefault()?.Message.Content;
-    }
     
-    public IAsyncEnumerable<string> SummarizeStreamedRaw(string ocrResult, string model)
-    {
-        var request = MakeCompletionRequest(ocrResult, model);
-        request.Stream = true;
-        var completionAsStream = OpenAITools.Service.ChatCompletion.CreateCompletionAsStream(request);
-        
-        var fullLinesAsync = Tools.EnumerateFullLines(ExtractMessagesFromResponse(completionAsStream));
-        return fullLinesAsync;
-    }
+    //these types represent the dataprotocol between data languagemodel and the server
+    public abstract record PromptResponseMessage;
+    public record SenderMessage(string sender) : PromptResponseMessage;
+    public record TextBlockMessage(string? emoji, string text) : PromptResponseMessage;
+    public record ErrorMessage(string error) : PromptResponseMessage;
+
     
-    ChatCompletionCreateRequest MakeCompletionRequest(string ocrResult, string model)
+    public async IAsyncEnumerable<PromptResponseMessage> PromptResponseMessagesFor(string ocrResult, string model)
     {
-        return new()
+        IAsyncEnumerable<ChatCompletionCreateResponse> completionAsStream = OpenAITools.Service.ChatCompletion.CreateCompletionAsStream(new()
         {
             Temperature = 0,
             Messages = new List<ChatMessage>()
@@ -34,7 +28,67 @@ public class GPT4Summarizer
                 ChatMessage.FromSystem(_systemMessage),
                 ChatMessage.FromUser(ocrResult),
             },
-            Model = model
-        };
+            Model = model,
+            Stream = true
+        });
+
+        await foreach (var fullLine in FullLinesFrom(completionAsStream))
+            yield return ParseLineFromPromptResponse(fullLine);
     }
+
+    static async IAsyncEnumerable<string> FullLinesFrom(IAsyncEnumerable<ChatCompletionCreateResponse> chatResponses)
+    {
+        StringBuilder sb = new StringBuilder();
+        await foreach (var chatResponse in chatResponses)
+        {
+            var chunk = chatResponse.Choices.First().Message.Content;
+            if (string.IsNullOrEmpty(chunk))
+                continue;
+
+            sb.Append(chunk);
+            var lines = sb.ToString().Split('\n');
+
+            for (int i = 0; i < lines.Length - 1; i++)
+            {
+                var fullLine = lines[i].TrimEnd('\r');
+                yield return fullLine;
+            }
+
+            sb.Clear();
+            sb.Append(lines[^1]);
+        }
+
+        if (sb.Length > 0)
+        {
+            var lastLine = sb.ToString().TrimEnd('\r', '\n');
+            // Operate on the last line, if not empty
+            if (lastLine.Length > 0)
+                yield return lastLine;
+        }
+    }
+
+
+    static PromptResponseMessage ParseLineFromPromptResponse(string promptResponseLine)
+    {
+        try
+        {
+            var rootElement = JsonDocument.Parse(promptResponseLine).RootElement;
+            
+            if (rootElement.TryGetProperty("sender", out _))
+                return JsonSerializer.Deserialize<SenderMessage>(promptResponseLine)!;
+
+            if (rootElement.TryGetProperty("text", out _))
+                return JsonSerializer.Deserialize<TextBlockMessage>(promptResponseLine)!;
+
+            if (rootElement.TryGetProperty("error", out _))
+                return JsonSerializer.Deserialize<ErrorMessage>(promptResponseLine)!;
+            
+            return new ErrorMessage(promptResponseLine);
+        }
+        catch (JsonException)
+        {
+            return new ErrorMessage(promptResponseLine);
+        }
+    }
+
 }
