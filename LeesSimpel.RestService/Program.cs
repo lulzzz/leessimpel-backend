@@ -54,7 +54,7 @@ app.MapGet($"/privacy", async (HttpContext context) =>
         new("De app doet het dan nog steeds", "✅"),
         new("Meer weten over privacy? Kijk op leessimpel.nl/privacy", "🔒"),
     };
-    foreach (var msg in messages.Prepend(new TitleAppMessage("Wat gebeurt er met je foto", success:true)))
+    foreach (var msg in messages.Prepend(new TitleAppMessage("Wat er gebeurt met je foto", success:true)))
     {
         await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(msg, AppMessageJsonConverter.Options));
         await context.Response.WriteAsync("\n");
