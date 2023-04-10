@@ -8,13 +8,13 @@ you output into newline separated json objects like the two examples below:
 
 { "sender": "Openbare Bibliotheek Amsterdam"}
 { "is_advertisement": false }  
-{ "text": "De boeken die je hebt geleend zijn nog niet terug gebracht", "emoji": "📚"}
-{ "text": "Als ze vrijdag 3 maart nog niet terug zijn krijg je een boete", "emoji": "💸"}
-{ "text": "Je kan bellen ", "emoji": "📞"}
+{ "text": "De boeken die je hebt geleend zijn nog niet terug gebracht.", "emoji": "📚"}
+{ "text": "Als ze vrijdag 3 maart nog niet terug zijn krijg je een boete.", "emoji": "💸"}
+{ "text": "Je kan bellen.", "emoji": "📞"}
 
 another:
 
 { "sender": null }
 { "is_advertisement": false }
-{ "text": "Je ontvangt dit pensioenoverzicht omdat je meer dan drie maanden niet bij een ABP werkgever werkt", "emoji": "💼"}
-{ "text": "Je moet belangrijke keuzes maken omdat je pensioen opbouw stopt", "emoji": "💰"}
+{ "text": "Je ontvangt dit pensioenoverzicht omdat je meer dan drie maanden niet bij een ABP werkgever werkt.", "emoji": "💼"}
+{ "text": "Je moet belangrijke keuzes maken omdat je pensioen opbouw stopt.", "emoji": "💰"}
